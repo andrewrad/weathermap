@@ -8,8 +8,8 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -23,6 +23,9 @@ import com.google.android.gms.maps.model.LatLng;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.Response;
 
 ///**
 // * Created by Andrew on 3/18/2016.
@@ -33,10 +36,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String TAG="MapsActivity";
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
-    private Location mLocation;
 
-    @Bind(R.id.click_button)Button click;
-    @Bind(R.id.progress_bar)ProgressBar progressBar;
+    Example mExample;
+    Call<Example> mCall;
+
+    @Bind(R.id.progress_bar)ProgressBar mProgressBar;
+    @Bind(R.id.city)TextView mTestBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,13 +53,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        click.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.e(TAG, "getCameraPosition: " + mMap.getCameraPosition().target.latitude + ", " + mMap.getCameraPosition().target.longitude);
-            }
-        });
     }
 
     /**
@@ -89,14 +87,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 //        googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
-        if(myLocation!=null) {
+        if (myLocation != null) {
             double latitude = myLocation.getLatitude();
             double longitude = myLocation.getLongitude();
             LatLng latLng = new LatLng(latitude, longitude);
             googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             googleMap.animateCamera(CameraUpdateFactory.zoomTo(12));
-        }else{
-            Toast.makeText(this,"To auto-detect your location, please turn on location services",Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "To auto-detect your location, please turn on location services", Toast.LENGTH_LONG).show();
         }
 
 //        mGoogleApiClient=new GoogleApiClient.Builder()
@@ -106,9 +104,76 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onMapLongClick(LatLng latLng) {
                 Log.e(TAG, "getCameraPosition by longClicking: " + mMap.getCameraPosition().target.latitude + ", " + mMap.getCameraPosition().target.longitude + ", " + latLng.latitude + ", " + latLng.longitude);
 //                mMap.addMarker(new MarkerOptions().position(latLng).draggable(true).title("75 rain"));
-                new FetchWeather().execute(mMap.getCameraPosition().target);
+//                new FetchWeather().execute(mMap.getCameraPosition().target);
+                getWeather(latLng.latitude, latLng.longitude);
             }
         });
+    }
+
+    /**
+     * Retrofit 2.0 Asynchronous implementation
+     * Performs the api call to openweathermap.org and parses all data into a pojo class
+     * @param lat
+     * @param lon
+     */
+    public void getWeather(Double lat, Double lon){
+        mProgressBar.setVisibility(View.VISIBLE);
+        ApiInterface apiInterface = RestClient.getClient();
+        mCall = apiInterface.getCityData(lat,lon);
+        mCall.enqueue(new Callback<Example>() {
+            @Override
+            public void onResponse(Response<Example> response) {
+                mProgressBar.setVisibility(View.INVISIBLE);
+                Log.e(TAG, "Retrofit onResponse");
+                if (response.isSuccess()) {
+                    Log.e(TAG, "successful onResponse Callback!!! "+response.body());
+                    mExample=response.body();
+                    Log.e(TAG, "city: "+mExample.getCity().getName());
+                    mTestBox.setText(mExample.getCity().getName()+", "+mExample.getCity().getCountry());
+                }else{
+                    Log.e(TAG, "not successful onResponse Callback");
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.e(TAG, "Retrofit onFailure");
+            }
+        });
+    }
+
+    /**
+     * Will delete this class in favor of the much better Retrofit implementation above
+     * AsyncTask to perform retrieval of data from openweathermap.org (not implemented yet)
+     */
+    private class FetchWeather extends AsyncTask {
+        private String TAG ="FetchWeather";
+        @Override
+        protected Object doInBackground(Object[] params) {
+            LatLng mLatLng=(LatLng) params[0];
+            Log.e(TAG, "lat long: " + mLatLng.latitude + ", " + mLatLng.longitude);
+            publishProgress(null);
+            try {
+                //for development purposes only
+                Thread.sleep(3000);
+            } catch (InterruptedException ie) {
+                Log.e(TAG,"thread sleep exception");
+            }
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Object[] values) {
+            super.onProgressUpdate(values);
+            mProgressBar.setVisibility(View.VISIBLE);
+            Log.e(TAG,"sleepage");
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+            mProgressBar.setVisibility(View.INVISIBLE);
+            Log.e(TAG,"task done! city: "+mExample.getCity().getName());
+        }
     }
 
     @Override
@@ -124,36 +189,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.e(TAG, "not connected");
-    }
-
-    private class FetchWeather extends AsyncTask {
-        private String TAG ="FetchWeather";
-        @Override
-        protected Object doInBackground(Object[] params) {
-            LatLng mLatLng=(LatLng) params[0];
-            Log.e(TAG, "lat long: "+mLatLng.latitude+", "+mLatLng.longitude);
-            publishProgress(null);
-            try {
-                //for development purposes only
-                Thread.sleep(3000);
-            } catch (InterruptedException ie) {
-                Log.e(TAG,"thread sleep exception");
-            }
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(Object[] values) {
-            super.onProgressUpdate(values);
-            progressBar.setVisibility(View.VISIBLE);
-            Log.e(TAG,"sleepage");
-        }
-
-        @Override
-        protected void onPostExecute(Object o) {
-            progressBar.setVisibility(View.INVISIBLE);
-            Log.e(TAG,"task done!");
-        }
     }
 
     @Override
