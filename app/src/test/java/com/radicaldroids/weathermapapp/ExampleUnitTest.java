@@ -1,4 +1,4 @@
-package com.radicaldroids.weathermapapp;
+package com.radicaldroids.weathermap;
 
 import org.junit.Test;
 
