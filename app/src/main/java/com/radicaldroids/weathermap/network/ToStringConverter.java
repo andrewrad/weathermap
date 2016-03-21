@@ -1,4 +1,4 @@
-package com.radicaldroids.weathermap;
+package com.radicaldroids.weathermap.network;
 
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;

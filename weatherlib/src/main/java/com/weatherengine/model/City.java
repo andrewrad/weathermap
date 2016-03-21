@@ -1,4 +1,4 @@
-package com.radicaldroids.weathermap;
+package com.weatherengine.model;
 
 import java.util.HashMap;
 import java.util.Map;

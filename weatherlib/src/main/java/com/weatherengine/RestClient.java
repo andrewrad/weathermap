@@ -1,11 +1,9 @@
-package com.radicaldroids.weathermap;
-
-import android.util.Log;
+package com.weatherengine;
 
 import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 
 import java.io.IOException;
 
@@ -40,15 +38,14 @@ public class RestClient {
             });
 
             Retrofit client = new Retrofit.Builder()
-                    .baseUrl(Constants.BASE_API_URL)
+                    .baseUrl("http://api.openweathermap.org/data/2.5/forecast/daily")
                     .addConverter(String.class, new ToStringConverter())
                     .client(httpClient)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
             mApiInterface = client.create(ApiInterface.class);
-            Log.e(TAG, "RestClient testing log statement: " + client);
+//            Log.e(TAG, "RestClient testing log statement: " + client);
         }
-
         return mApiInterface ;
     }
 }

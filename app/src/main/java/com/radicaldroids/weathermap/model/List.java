@@ -1,4 +1,4 @@
-package com.radicaldroids.weathermap;
+package com.radicaldroids.weathermap.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
