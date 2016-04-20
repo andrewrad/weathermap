@@ -1,5 +1,7 @@
 package com.radicaldroids.weathermap;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -79,14 +81,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //                .addLocationRequest(mLocationRequestBalancedPowerAccuracy);
 
         //TODO address permission issue on newest platform
-        mMap.setMyLocationEnabled(true);
+        try {
+            mMap.setMyLocationEnabled(true);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
 
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         Criteria criteria = new Criteria();
         String provider = locationManager.getBestProvider(criteria, true);
         //TODO address permission issue on newest platform
-        Location myLocation = locationManager.getLastKnownLocation(provider);
+        Location myLocation = null;
+        try {
+            myLocation = locationManager.getLastKnownLocation(provider);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
 
         //For usability I leave the map type to default
 //        googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
@@ -136,7 +147,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mExample=response.body();
 
                     //Temporary overlay design of writing text over the map, hoping to build a better UI soon
-                    //Also hoping to clean up the model class hierarchy if enough time allows
+                    //Also hoping to clean up the com.model class hierarchy if enough time allows
                     Double highTemp=mExample.getList().get(0).getTemp().getMax();
                     Double lowTemp=mExample.getList().get(0).getTemp().getMin();
                     Integer clouds=mExample.getList().get(0).getClouds();
@@ -173,6 +184,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
     public void setWeatherText(StringBuilder sb){
         mTestBox.setText(Html.fromHtml(sb.toString()));
+//        Intent
     }
 
     @Override

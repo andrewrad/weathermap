@@ -5,4 +5,5 @@ package com.radicaldroids.weathermap;
  */
 public class Constants {
     public static final String BASE_API_URL="http://api.openweathermap.org/data/2.5/forecast/daily";
+    public static final String WEATHER_API_KEY="placeKeyHere";
 }

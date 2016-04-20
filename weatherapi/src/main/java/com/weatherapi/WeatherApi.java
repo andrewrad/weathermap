@@ -1,7 +1,8 @@
-package com.weatherengine;
+package com.weatherapi;
 
-import com.weatherengine.model.Example;
+import android.content.Intent;
 
+import com.model.Example;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
@@ -9,8 +10,8 @@ import retrofit.Response;
 public class WeatherApi{
     Double latitude;
     Double longitude;
-    public com.weatherengine.model.Example mExample;
-    private Call<com.weatherengine.model.Example> mCall;
+    public Example mExample;
+    private Call<Example> mCall;
 
     public WeatherApi(){
     }
@@ -27,18 +28,19 @@ public class WeatherApi{
      * @param longitude
      */
     public void getWeather(Double latitude, Double longitude){
-        mExample=new com.weatherengine.model.Example();
+        mExample=new Example();
         ApiInterface apiInterface = RestClient.getClient();
         mCall = apiInterface.getCityData(latitude,longitude);
 //        mCall.enqueue(this);
-        mCall.enqueue(new Callback<com.weatherengine.model.Example>() {
+        mCall.enqueue(new Callback<Example>() {
 
             @Override
-            public void onResponse(Response<com.weatherengine.model.Example> response) {
+            public void onResponse(Response<Example> response) {
 //                Log.e(TAG, "Retrofit onResponse");
                 if (response.isSuccess()) {
 //                    Log.e(TAG, "successful onResponse Callback!!! "+response.body());
                     mExample=response.body();
+
 
                 }else{
 //                    Log.e(TAG, "not successful onResponse Callback");
